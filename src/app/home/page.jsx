@@ -70,7 +70,7 @@ const Home = () => {
                         {isLoading? (
                             <SpinnerComponent color="blue" />
                         ) : (
-                            <Image
+                            <img
                                 src={dailyHoroscope?.icon}
                                 width={600}
                                 height={600}

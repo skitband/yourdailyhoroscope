@@ -1,22 +1,26 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect  } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getHoroscopeSign } from '../lib/action';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const isBrowser = typeof window !== 'undefined';
 
-  const storedUserSession = localStorage.getItem('userSession') ? JSON.parse(localStorage.getItem('userSession')) : null;
-  const [userSession, setUserSession] = useState(storedUserSession || null);
+  // Use null as the initial state during SSR
+  const storedUserSession = isBrowser ? (sessionStorage.getItem('userSession') ? JSON.parse(sessionStorage.getItem('userSession')) : null) : null;
 
-  // console.log(userSession, storedUserSession);
-  
+  const [userSession, setUserSession] = useState(storedUserSession);
+
   useEffect(() => {
-    if (storedUserSession) {
-      setUserSession(storedUserSession);
+    // Only run this on the client side
+    if (isBrowser) {
+      const storedUserSession = sessionStorage.getItem('userSession');
+      if (storedUserSession) {
+        setUserSession(JSON.parse(storedUserSession));
+      }
     }
-    
   }, []);
 
   const setUser = async (data) => {
@@ -30,14 +34,19 @@ export const AuthProvider = ({ children }) => {
         ...data,
         sign: sign,
       };
-  
-      localStorage.setItem('userSession', JSON.stringify(newSession));
+
+      if (isBrowser) {
+        sessionStorage.setItem('userSession', JSON.stringify(newSession));
+      }
+
       return newSession;
     });
   };
 
   const clearUserSession = () => {
-    localStorage.removeItem('userSession');
+    if (isBrowser) {
+      sessionStorage.removeItem('userSession');
+    }
     setUserSession(null);
   };
 
@@ -52,13 +61,13 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
 
   try {
-    if(!context) {
+    if (!context) {
       throw new Error('useAuth must be used within an AuthProvider');
     }
     // console.log(context)
     return context;
   } catch (error) {
-    console.log(error)
-    throw error
+    console.log(error);
+    throw error;
   }
 };
