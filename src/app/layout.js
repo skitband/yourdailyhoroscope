@@ -1,5 +1,11 @@
+// RootLayout.js
+
 import { Inter } from "next/font/google";
+import { AuthProvider } from "./AuthContext";
 import "./globals.css";
+import "../styles/custom.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,7 +17,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <AuthProvider>
+          <main>
+            <div className="flex min-h-screen flex-col items-center justify-between p-24 bg-gray-50 dark:bg-gray-900">
+              {children} 
+            </div>
+          </main>
+          <ToastContainer />
+        </AuthProvider>
+      </body>
     </html>
   );
 }
