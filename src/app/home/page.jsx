@@ -7,50 +7,54 @@ import NavbarComponent from '@/components/NavbarComponent/NavbarComponent';
 import FourZeroFourComponent from '@/components/404/FourZeroFourComponent';
 import {getDailyHorosCopes} from '@/lib/action';
 import Image from 'next/image';
+import SpinnerComponent from '@/components/SpinnerComponent/SpinnerComponent';
+import HomeSkelComponent from '@/components/HomeSkelComponent/HomeSkelComponent';
 
 const Home = () => {
 
     const { userSession } = useAuth();
-    const [dailyHoroscope, setDailyHoroscope] = useState([]);
-
-    console.log(userSession)
-
-    if(!userSession) {
-        // router.push('/login', { scroll: false })
-        return (
-            <FourZeroFourComponent />
-        )
-    }
+    const [ dailyHoroscope, setDailyHoroscope ] = useState([]);
+    const [ isLoading, setIsLoading ] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
+        setIsLoading(true);
           if (userSession) {
             try {
               const res = await getDailyHorosCopes(userSession.sign);
-              console.log('xx', res);
+            //   console.log('xx', res);
               setDailyHoroscope(res);
             } catch (error) {
               console.error('Error fetching daily horoscopes:', error);
             }
           }
+          setIsLoading(false);
         };
     
         fetchData();
     
-      }, [userSession]);
+    }, [userSession]);
+
+    if(!userSession) {
+        return <FourZeroFourComponent />
+    }
 
     return (
         <>
             <NavbarComponent />
             <section className="bg-white">
                 <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
-                    <div className="mr-auto place-self-center lg:col-span-7 px-5">
-                    <h1 className="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white">
-                        Welcome {userSession?.name}
-                    </h1>
-                    <p className="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400">
-                        Today is: {dailyHoroscope?.horoscope}
-                    </p>
+                {isLoading? (
+                        <HomeSkelComponent />
+                    ) : (
+                        <>
+                        <div className="mr-auto place-self-center lg:col-span-7 px-5">
+                        <h1 className="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white">
+                            Welcome {userSession?.name}
+                        </h1>
+                        <p className="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400">
+                            Today is: {dailyHoroscope?.horoscope}
+                        </p>
                     <div>
                     <button
                         href="#"
@@ -63,8 +67,23 @@ const Home = () => {
                     
                     </div>
                     <div className="hidden lg:mt-0 lg:col-span-5 lg:flex px-5">
-                        <Image src={dailyHoroscope?.icon} alt="daily horoscope" width="300" height="200" />
+                        {isLoading? (
+                            <SpinnerComponent color="blue" />
+                        ) : (
+                            <Image
+                                src={dailyHoroscope?.icon}
+                                width={600}
+                                height={600}
+                                className="rounded-lg"
+                                alt="daily horoscope"
+                            />
+                        )}
                     </div>
+                    </>
+                )}
+				
+				
+				
                 </div>
             </section>
         </>

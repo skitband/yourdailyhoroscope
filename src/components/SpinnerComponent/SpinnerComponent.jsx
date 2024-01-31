@@ -1,12 +1,12 @@
 import React from 'react'
 
-const SpinnerComponent = () => {
+const SpinnerComponent = ({color}) => {
   return (
     <div className="text-center">
         <div role="status">
             <svg
             aria-hidden="true"
-            className="inline w-8 h-7 text-white animate-spin fill-white"
+            className={`inline w-8 h-7 animate-spin fill-${color} text-${color}`}
             viewBox="0 0 100 101"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"

@@ -151,10 +151,20 @@ export const getHoroscopeSign = async (dob) => {
 
 export const getDailyHorosCopes = async (sign) => {
 
+  const currentDate = new Date();
+
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const day = String(currentDate.getDate()).padStart(2, '0');
+
+  const formattedDate = `${year}-${month}-${day}`;
+  // const formattedDate = '2024-01-02';
+
+  console.log('formattedDate', formattedDate);
 
   try {
     const url = 'https://newastro.vercel.app'
-    const res = await fetch(`${url}/${sign}`);
+    const res = await fetch(`${url}/${sign}?date=${formattedDate}`);
     const data = await res.json();
     console.log('data', data);
     return data;

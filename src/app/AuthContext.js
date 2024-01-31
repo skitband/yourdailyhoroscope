@@ -7,9 +7,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
 
-  const isBrowser = typeof window !== 'undefined';
-
-  const storedUserSession = isBrowser && localStorage.getItem('userSession') ? JSON.parse(localStorage.getItem('userSession')) : null;
+  const storedUserSession = localStorage.getItem('userSession') ? JSON.parse(localStorage.getItem('userSession')) : null;
   const [userSession, setUserSession] = useState(storedUserSession || null);
 
   // console.log(userSession, storedUserSession);
@@ -33,18 +31,13 @@ export const AuthProvider = ({ children }) => {
         sign: sign,
       };
   
-      if (isBrowser) {
-        localStorage.setItem('userSession', JSON.stringify(newSession));
-      }
-  
+      localStorage.setItem('userSession', JSON.stringify(newSession));
       return newSession;
     });
   };
 
   const clearUserSession = () => {
-    if (isBrowser) {
-      localStorage.removeItem('userSession');
-    }
+    localStorage.removeItem('userSession');
     setUserSession(null);
   };
 

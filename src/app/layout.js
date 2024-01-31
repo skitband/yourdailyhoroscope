@@ -19,11 +19,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <main>
-            <div className="flex min-h-screen flex-col items-center justify-between p-24 bg-gray-50 dark:bg-gray-900">
+            <main className="flex min-h-screen flex-col items-center justify-between p-24 bg-gray-50 dark:bg-gray-900">
               {children} 
-            </div>
-          </main>
+            </main>
           <ToastContainer />
         </AuthProvider>
       </body>
