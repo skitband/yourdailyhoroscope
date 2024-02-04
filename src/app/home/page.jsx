@@ -1,41 +1,22 @@
 
 "use client"
 
-import React, { useEffect, useState } from 'react'
-import { useAuth } from '../AuthContext';
 import NavbarComponent from '@/components/NavbarComponent/NavbarComponent';
 import FourZeroFourComponent from '@/components/404/FourZeroFourComponent';
-import {getDailyHorosCopes} from '@/lib/action';
+import {useAuthState} from 'react-firebase-hooks/auth'
+import { auth } from '../../../firebase.config'
+import { useAuth } from '../AuthContext';
 import Image from 'next/image';
 import SpinnerComponent from '@/components/SpinnerComponent/SpinnerComponent';
 import HomeSkelComponent from '@/components/HomeSkelComponent/HomeSkelComponent';
+import DropdownComponent from '@/components/DropdownComponent/DropdownComponent';
 
 const Home = () => {
 
-    const { userSession } = useAuth();
-    const [ dailyHoroscope, setDailyHoroscope ] = useState([]);
-    const [ isLoading, setIsLoading ] = useState(false);
+    const [ user ] = useAuthState(auth);
+    const { userSession, sign, isLoading } = useAuth()
 
-    useEffect(() => {
-        const fetchData = async () => {
-        setIsLoading(true);
-          if (userSession) {
-            try {
-              const res = await getDailyHorosCopes(userSession.sign);
-            //   console.log('xx', res);
-              setDailyHoroscope(res);
-            } catch (error) {
-              console.error('Error fetching daily horoscopes:', error);
-            }
-          }
-          setIsLoading(false);
-        };
-    
-        fetchData();
-    
-    }, [userSession]);
-
-    if(!userSession) {
+    if (!user && !userSession){
         return <FourZeroFourComponent />
     }
 
@@ -49,20 +30,22 @@ const Home = () => {
                     ) : (
                         <>
                         <div className="mr-auto place-self-center lg:col-span-7 px-5">
-                        <h1 className="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white">
-                            Welcome {userSession?.name}
+                        <h1 className="max-w-2xl mb-4 text-3xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl">
+                            Welcome {user?.displayName}
                         </h1>
-                        <p className="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400">
-                            Today is: {dailyHoroscope?.horoscope}
-                        </p>
+                        <div className="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400">
+                        <ul>
+                            {sign?.map((signItem) => (
+                            <li key={signItem.id}>
+                                <p className="text-2xl mb-2">Sign: {signItem.sign}</p>
+                                <p className='text-2xl mb-4'>Date: {signItem.date}</p>
+                                <p className='text-justify'>Horoscope: {signItem.horoscope}</p>
+                            </li>
+                            ))}
+                        </ul>
+                        </div>
                     <div>
-                    <button
-                        href="#"
-                        className="inline-flex items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900"
-                    >
-                        {dailyHoroscope?.sign}
-                        
-                    </button>
+                    <DropdownComponent />
                     </div>
                     
                     </div>
@@ -70,20 +53,20 @@ const Home = () => {
                         {isLoading? (
                             <SpinnerComponent color="blue" />
                         ) : (
-                            <img
-                                src={dailyHoroscope?.icon}
-                                width={600}
-                                height={600}
+                            sign?.map((signItem) => (
+                                <Image
+                                key={signItem.id}
+                                src={signItem?.icon}
+                                width={400}
+                                height={300}
                                 className="rounded-lg"
-                                alt="daily horoscope"
+                                alt="horoscope icon"
                             />
+                            ))
                         )}
                     </div>
                     </>
                 )}
-				
-				
-				
                 </div>
             </section>
         </>
