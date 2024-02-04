@@ -53,16 +53,19 @@ const Home = () => {
                         {isLoading? (
                             <SpinnerComponent color="blue" />
                         ) : (
-                            sign?.map((signItem) => (
+                            <div className="relative object-container w-1/2 h-1/2 m-auto">
+                            {sign?.map((signItem) => (
                                 <Image
-                                key={signItem.id}
-                                src={signItem?.icon}
-                                width={400}
-                                height={300}
-                                className="rounded-lg"
-                                alt="horoscope icon"
-                            />
-                            ))
+                                    key={signItem.id}
+                                    // src={signItem?.icon}
+                                    src={`/images/${signItem?.sign}.png`}
+                                    fill="true"
+                                    className="rounded-lg"
+                                    alt="horoscope icon"
+                                    onLoad={(e) => console.log(e)}
+                                />
+                            ))}
+                            </div>
                         )}
                     </div>
                     </>
