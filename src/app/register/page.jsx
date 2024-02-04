@@ -5,17 +5,20 @@ import { useState } from 'react';
 import { useFormik } from 'formik';
 import { registerSchema } from './validationSchemas';
 import { addUser } from "@/lib/action";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
-import AlertComponent from '@/components/AlertComponent/AlertComponent';
+import { useCreateUserWithEmailAndPassword, useSendEmailVerification, useUpdateProfile } from 'react-firebase-hooks/auth'
+import { auth } from '../../../firebase.config'
 import { toast } from 'react-toastify';
+import AlertComponent from '@/components/AlertComponent/AlertComponent';
 import SpinnerComponent from '@/components/SpinnerComponent/SpinnerComponent';
 
 const Register = () => {
 
     const [errorMsg, setErrorMsg] = useState(null);
     const router = useRouter();
-    const supabase = createClientComponentClient();
+    const [createUserWithEmailAndPassword, error] = useCreateUserWithEmailAndPassword(auth);
+    const [sendEmailVerification] = useSendEmailVerification(auth)
+    const [updateProfile] = useUpdateProfile(auth);
 
     const formik = useFormik({
         initialValues: {
@@ -28,42 +31,56 @@ const Register = () => {
         validationSchema: registerSchema,
         onSubmit: async (values) => {
             const { name, email, password, dob } = values;
-            try {
-              const response = await supabase.auth.signUp({
-                email,
-                password,
-                options: {
-                    emailRedirectTo: `${location.origin}/api/auth/callback`
-                }
-              })
-              if(response.data?.user) {
-                console.log(response.data.user.id);
-                const { id } = response.data.user;
-                const updatedValues = { ...values, id };
-                try {
-                  const res = await addUser(updatedValues);
-                  console.log('Response from addUser:', res);
-                  if (res.error) {
-                    setErrorMsg(res.error);
-                    return;
-                  }
+            // try {
+            //   const response = await supabase.auth.signUp({
+            //     email,
+            //     password,
+            //     options: {
+            //         emailRedirectTo: `${location.origin}/api/auth/callback`
+            //     }
+            //   })
+            //   if(response.data?.user) {
+            //     console.log(response.data.user.id);
+            //     const { id } = response.data.user;
+            //     const updatedValues = { ...values, id };
+            //     try {
+            //       const res = await addUser(updatedValues);
+            //       console.log('Response from addUser:', res);
+            //       if (res.error) {
+            //         setErrorMsg(res.error);
+            //         return;
+            //       }
                   
-                } catch (error) {
-                  console.error('Error during registration:', error);
-                }
-                toast.success('Registration successful! Please check your email to verify your account.');
-                router.push("/login");
+            //     } catch (error) {
+            //       console.error('Error during registration:', error);
+            //     }
+            //     toast.success('Registration successful! Please check your email to verify your account.');
+            //     router.push("/login");
+            //   }
+            // } catch (error) {
+            //   setErrorMsg(error);
+            // }
+            try {
+              await createUserWithEmailAndPassword(email, password)
+              if(error) {
+                toast.error(error.message)
+                console.log('error', error)
+                return
               }
-            } catch (error) {
-              setErrorMsg(error);
+              toast.success('Registration successful! Please check your email to verify your account.');
+              await sendEmailVerification();
+              await updateProfile({ displayName: name });
+              router.push("/login");
+            } catch (e) {
+              console.log(e)
+              throw e;
             }
-            
           },
     });
 
   return (
-    <section className="items-center justify-center flex flex-wrap mt-10">
-      <div className="w-[600px] bg-white rounded-lg md:mt-0 sm:max-w-md xl:p-0">
+    <section className="flex items-center justify-center mt-10">
+      <div className="w-[300px] lg:w-[600px] bg-white rounded-lg md:mt-0 sm:max-w-md xl:p-0">
           <div className="sm:mx-auto sm:w-full sm:max-w-md">
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
               Register

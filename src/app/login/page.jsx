@@ -6,7 +6,8 @@ import { useFormik } from 'formik';
 import { loginSchema } from './loginSchema';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation'
-import { loginUser } from "@/lib/action";
+import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth'
+import { auth } from '../../../firebase.config'
 import { useAuth } from '../AuthContext';
 import SpinnerComponent from '@/components/SpinnerComponent/SpinnerComponent';
 
@@ -14,6 +15,8 @@ const Login = () => {
   
   const router = useRouter()
   const { setUser } = useAuth()
+  const [signInWithEmailAndPassword, user, loading, error] = useSignInWithEmailAndPassword(auth);
+  const [signInWithGoogle, googleUser, googleSignInLoading, googleSignInError] = useSignInWithGoogle(auth);
 
   const formik = useFormik({
     initialValues: {
@@ -22,24 +25,28 @@ const Login = () => {
     },
     validationSchema: loginSchema,
     onSubmit: async (values) => {
-
+      const { email, password } = values;
       try {
-        const res = await loginUser(values);
-        console.log('Response from loginUser:', res);
-        if (res.error) {
-          toast.error(res.error.message);
+        const res = await signInWithEmailAndPassword(email, password);
+        if(!user){
+          console.log(error)
+          toast.error(error.message)
           return
         }
-        setUser(res.data)
-        router.push('/home', { scroll: false })
-        
-      } catch (error) {
-        console.error('Error during login:', error);
-        toast.error(error);
-        return;
+        setUser(res.user)
+        router.push('/home')
+      }catch(e){
+        console.error(e)
+        throw e 
       }
     },
   });
+
+  if(googleUser){
+    console.log(googleUser)
+    setUser(googleUser)
+    router.push('/home')
+  }
 
   return (
     <>
@@ -171,9 +178,10 @@ const Login = () => {
                     </a>
                   </div>
                   <div>
-                    <a
+                    <button
                       href="#"
                       className="w-full flex items-center justify-center px-8 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                      onClick={() => signInWithGoogle()}
                     >
                       <Image
                         width={10}
@@ -182,7 +190,7 @@ const Login = () => {
                         src="https://www.svgrepo.com/show/506498/google.svg"
                         alt=""
                       />
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>

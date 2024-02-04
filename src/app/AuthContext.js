@@ -1,57 +1,53 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getHoroscopeSign } from '../lib/action';
+import {useAuthState} from 'react-firebase-hooks/auth'
+import {auth} from '../../firebase.config'
+import { signOut } from 'firebase/auth';
+import { getDailyHorosCopes } from '@/lib/action';
+
 
 const AuthContext = createContext();
+const storedUserSession = null
 
 export const AuthProvider = ({ children }) => {
-  const isBrowser = typeof window !== 'undefined';
-
-  // Use null as the initial state during SSR
-  const storedUserSession = isBrowser ? (sessionStorage.getItem('userSession') ? JSON.parse(sessionStorage.getItem('userSession')) : null) : null;
-
-  const [userSession, setUserSession] = useState(storedUserSession);
 
   useEffect(() => {
-    // Only run this on the client side
-    if (isBrowser) {
-      const storedUserSession = sessionStorage.getItem('userSession');
-      if (storedUserSession) {
-        setUserSession(JSON.parse(storedUserSession));
-      }
-    }
-  }, []);
+    var storedUserSession =  sessionStorage.getItem('user');
+  }, [storedUserSession]);
+  
+  const [user] = useAuthState(auth);
+  const [userSession, setUserSession] = useState(storedUserSession);
+  const [sign, setSign] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const setUser = async (data) => {
-    //console.log(data.dob) // 1993-02-17
-
-    const sign = await getHoroscopeSign(data.dob);
-
-    setUserSession((prevSession) => {
-      const newSession = {
-        ...prevSession,
-        ...data,
-        sign: sign,
-      };
-
-      if (isBrowser) {
-        sessionStorage.setItem('userSession', JSON.stringify(newSession));
-      }
-
-      return newSession;
-    });
+  const setUser = async () => {
+    // console.log('yyyy', data)
+    // console.log('xxxxx', data.user.auth.currentUser) // 1993-02-17
+    sessionStorage.setItem('user', JSON.stringify(user))
   };
 
   const clearUserSession = () => {
-    if (isBrowser) {
-      sessionStorage.removeItem('userSession');
-    }
     setUserSession(null);
+    signOut(auth)
+    sessionStorage.removeItem('user')
   };
 
+  const handleSignChange = async (sign) => {
+    try {
+      setIsLoading(true);
+      const res = await getDailyHorosCopes(sign);
+      // console.log('xx', res);
+      setSign([res])
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ userSession, setUser, clearUserSession }}>
+    <AuthContext.Provider value={{ userSession, setUser, clearUserSession, sign, handleSignChange, isLoading, setIsLoading }}>
       {children}
     </AuthContext.Provider>
   );
